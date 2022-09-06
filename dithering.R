@@ -1,15 +1,30 @@
 
 require(png)
-#pic <- readPNG('~/Downloads/headshot_small.png')
-pic <- readPNG('~/Desktop/angel.png')
+pic  <- readPNG('~/Desktop/trojan.png')
+#pic <- readPNG('~/Projects/slingshot/inst/slingshot_sticker.png')
+#pic <- readPNG('~/Desktop/angel.png')
 # channels: R, G, B, alpha
 pic <- pic[,,1:3]
+pic <- (pic[,,1]+pic[,,2]+pic[,,3])/3
 
 
 N <- nrow(pic)*ncol(pic)
 #filt <- matrix(runif(N, nrow=nrow(pic), ncol=ncol(pic))
 #filt <- matrix(sample(1:25) / 25 - .5/25, nrow=5, ncol=5)
-filt <- ambient::noise_blue(c(64,64))
+#filt <- ambient::noise_blue(c(64,64))
+{
+    N <- nrow(pic)*ncol(pic)
+    x <- runif(N)
+    y <- runif(N)
+    bumpup <- which(abs(x-.5) > abs(y-.5) & x < .5)
+    bumpdown <- which(abs(x-.5) > abs(y-.5) & x > .5)
+    x[bumpup] <- x[bumpup] + .5
+    x[bumpdown] <- x[bumpdown] - .5
+    filt <- matrix(x, nrow=nrow(pic), ncol=ncol(pic))
+    rm(N,x,y,bumpup,bumpdown)
+} # filt (this one looks the best)
+
+
 while(nrow(filt) < nrow(pic)){
     filt <- rbind(filt, filt)
 }
@@ -22,10 +37,17 @@ filt <- filt[1:nrow(pic), 1:ncol(pic)]
 
 
 
-updn <- pic
-for(i in 1:4){
-    updn[,,i] <- pic[,,i] > filt
-}
+dith <- pic > filt
+dith[,] <- as.numeric(dith)
+
+image(pic)
+image(dith)
+
+writePNG(dith, target = '~/Desktop/dith.png')
+writePNG(pic, target = '~/Desktop/orig.png')
+
+
+
 
 
 
