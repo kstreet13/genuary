@@ -245,7 +245,7 @@ if(hexes){
         poly <- t(centers[i,] +
                       t((hr/sqrt(3)) * cbind(cos(angseq), sin(angseq))))
         if(keep[i]){
-            polygon(poly, col = bgcol)
+            polygon(poly, col = bgcol, border = bgcol2)
         }
     }
 }
@@ -262,16 +262,16 @@ if(whitelightning){
     }
 }
 
-if(hexes){
-    # hex edges
-    for(i in 1:nrow(centers)){
-        if(keep[i]){
-            poly <- t(centers[i,] +
-                          t((hr/sqrt(3)) * cbind(cos(angseq), sin(angseq))))
-            polygon(poly, border = rgb(0,0,0,.1))
-        }
-    }
-}
+# if(hexes){
+#     # hex edges
+#     for(i in 1:nrow(centers)){
+#         if(keep[i]){
+#             poly <- t(centers[i,] +
+#                           t((hr/sqrt(3)) * cbind(cos(angseq), sin(angseq))))
+#             polygon(poly, border = rgb(0,0,0,.1))
+#         }
+#     }
+# }
 
 
 
