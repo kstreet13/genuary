@@ -1,7 +1,6 @@
 
-# lightning spiral with circular middle
-# then make hexagons, some transparent, some not
-
+# lightning that builds on itself
+require(matrixStats)
 getpath <- function(start, grid, num_steps = 1000, step_length = 1){
     loc <- start
     path <- loc
@@ -28,65 +27,10 @@ getpath <- function(start, grid, num_steps = 1000, step_length = 1){
     return(path)
 }
 
-getpathSpecial <- function(start, grid, num_steps = 1000, step_length = 1, center = c(50,50)){
-    loc <- start
-    path <- loc
-    for(n in 1:num_steps){
-        if(n %% 20 == 0){
-            # check if it's stuck
-            xchk <- path[(nrow(path)-15):nrow(path), ]
-            if(all(colMaxs(xchk)-colMins(xchk) < 2)){
-                break
-            }
-        }
-        column_index = round(loc[1])
-        row_index = round(loc[2])
-        if(column_index > 0 & column_index <= ncol(grid) &
-           row_index > 0 & row_index <= nrow(grid)){
-            # if(all(c(column_index,row_index)==center)){
-            #     grid_angle <- runif(1,max=2*pi)
-            # }
-            if(sqrt(sum((loc-center)^2)) < 2){
-                p1 <- loc[1] - floor(loc[1])
-                p2 <- loc[2] - floor(loc[2])
-                ci1 = floor(loc[1])
-                ri1 = floor(loc[2])
-                angs <- c(grid[ri1,ci1], grid[ri1+1,ci1],
-                          grid[ri1,ci1+1], grid[ri1+1,ci1+1])
-                ws <- 1/c(sqrt(p1^2+p2^2),
-                          sqrt(p1^2+(1-p2)^2),
-                          sqrt((1-p1)^2+p2^2),
-                          sqrt((1-p1)^2+(1-p2)^2))
-                xc <- sum(ws * cos(angs)) / sum(ws)
-                yc <- sum(ws * sin(angs)) / sum(ws)
-                n <- sqrt(xc^2 + yc^2)
-                xc <- step_length * xc/(2*n)
-                yc <- step_length * yc/(2*n)
-                loc <- loc + c(xc, yc)
-            }else{
-                grid_angle <- grid[row_index, column_index]
-                loc <- loc + c(step_length * cos(grid_angle), 
-                               step_length * sin(grid_angle))
-            }
-            path <- rbind(path, loc)
-        }else{
-            break
-        }
-    }
-    return(path)
-}
-
 getpathRandCtr <- function(start, grid, num_steps = 1000, step_length = 1, center = c(50,50)){
     loc <- start
     path <- loc
     for(n in 1:num_steps){
-        if(n %% 20 == 0){
-            # check if it's stuck
-            xchk <- path[(nrow(path)-15):nrow(path), ]
-            if(all(colMaxs(xchk)-colMins(xchk) < 2)){
-                break
-            }
-        }
         column_index = round(loc[1])
         row_index = round(loc[2])
         if(column_index > 0 & column_index <= ncol(grid) &
@@ -107,51 +51,56 @@ getpathRandCtr <- function(start, grid, num_steps = 1000, step_length = 1, cente
     return(path)
 }
 
+repelled_points <- function(n, multiplier = 15, rw = c(0,1,0,1)){
+    x0 <- matrix(runif(2*multiplier*n), ncol=2)
+    x0[,1] <- (x0[,1] + rw[1])*(rw[2]-rw[1])
+    x0[,2] <- (x0[,2] + rw[3])*(rw[4]-rw[3])
+    km <- kmeans(x0, centers=n)
+    return(km$centers)
+}
+
+angle_avg <- function(a1, a2, w1 = .5, w2 = .5){
+    n.w1 <- w1 / (w1+w2)
+    n.w2 <- w2 / (w1+w2)
+    (a2 + (n.w1/(n.w1+n.w2))*((a1-a2) %% (2*pi))) %% (2*pi)
+}
 
 ###################
 # GLOBAL SETTINGS #
 ###################
 artsy <- FALSE
-spiralcenter <- FALSE
 hexes <- FALSE
 whitelightning <- TRUE
 
 
 
-for(jj in 1:50){
-
-spiralcenter <- runif(1) < .5
-#hexes <- runif(1) < .5
-whitelightning <- runif(1) < .5
 
 
-# combine them (spinning lightning grid)
-spiral <- matrix(0, nrow=100, ncol=100)
-center <- c(50,50)
-for(r in 1:nrow(spiral)){
-    for(c in 1:ncol(spiral)){
-        spiral[r,c] <- (atan2(r-center[2], c-center[1]) + pi/2) %% (2*pi)
-    }
-}
 rand <- matrix(0, nrow=50, ncol=50)
-rand[,] <- runif(nrow(rand)*ncol(rand), min = -pi, max = pi)
+rand[,] <- runif(nrow(rand)*ncol(rand), min = 0, max = 2*pi)
 rand <- mazing::expand_matrix(rand)
 
-# p is matrix representing percent spiral (1-p is percent rand)
-p <- matrix(0, nrow=100, ncol=100)
-for(r in 1:nrow(spiral)){
-    for(c in 1:ncol(spiral)){
-        d <- sqrt(sum((c(c,r)-center)^2))
-        if(spiralcenter){
-            p[r,c] <- .4 + .6*(1-pnorm(d*(7/30)-3))
-            ####p[r,c] <- min(c(max(c(1-(d/40)^2 ,0)),1))
-        }else{
-            p[r,c] <- .4
-        }
+# still want some local smoothing
+# within local 10x10
+for(i in 1:10){
+    for(j in 1:10){
+        r.ind <- (10*(i-1)+1):(10*i)
+        c.ind <- (10*(j-1)+1):(10*j)
+        m <- runif(1, min = 0, max = 2*pi)
+        rand[r.ind,c.ind] <- angle_avg(rand[r.ind,c.ind], m, .7, .3)
+    }
+}
+# within local 33x33
+for(i in 1:3){
+    for(j in 1:3){
+        r.ind <- which(1:100 > (i-1)*100/3 & 1:100 <= (i)*100/3)
+        c.ind <- which(1:100 > (j-1)*100/3 & 1:100 <= (j)*100/3)
+        m <- runif(1, min = 0, max = 2*pi)
+        rand[r.ind,c.ind] <- angle_avg(rand[r.ind,c.ind], m, .7, .3)
     }
 }
 
-grid <- spiral*p + rand*(1-p)
+grid <- rand
 
 #showGrid(grid) #flowField.R
 
@@ -162,13 +111,16 @@ grid <- spiral*p + rand*(1-p)
 num.paths <- 1000
 path.len <- 500
 
-paths <- lapply(1:num.paths, function(pi){
-    if(spiralcenter){
-        getpathSpecial(rnorm(2,mean=50,sd=.5), grid, num_steps = path.len, step_length = .5, center=c(50,50))
-    }else{
-        getpathRandCtr(rnorm(2,mean=50,sd=.8), grid, num_steps = path.len, step_length = .5, center=c(50,50))
-    }
-})
+paths <- list()
+start <- c(50.5, 50.5)
+for(p.i in 1:num.paths){
+    paths[[p.i]] <- rbind(start,
+                          getpath(start+rnorm(2,sd=.8), grid, num_steps = path.len, step_length = .5))
+    lens <- lengths(paths) /2
+    w.p <- sample(length(paths),1, prob = 1:length(paths))
+    start <- paths[[w.p]][sample(lens[w.p], 1, prob = 1:lens[w.p])]
+}
+
 
 
 ###################
@@ -247,7 +199,7 @@ plot(c(1,1,1,1), c(1,1,1,1), cex = c(100,40,10,1), col=c(bgcol2,bgcol,fgcol,'whi
 ############
 
 #
-png(paste0('~/Desktop/temp/',jj,'.png'), width = round(diff(xr)*40), height = round(diff(yr)*40), res = 250)
+#png(paste0('~/Desktop/temp/',jj,'.png'), width = round(diff(xr)*40), height = round(diff(yr)*40), res = 250)
 par(mar=c(0,0,0,0))
 #
 
@@ -301,11 +253,11 @@ if(whitelightning){
 
 
 #
-dev.off()
+#dev.off()
 #
 
 
-}
+
 
 
 
