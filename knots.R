@@ -1,4 +1,6 @@
 
+# tSNE = knots (UMAP = splats)
+
 n <- 5000
 XX <- cbind(runif(1,min=1,max=10)*cos(scaleAB(1:n, b=2*pi)), runif(1,min=1,max=10)*sin(scaleAB(1:n, b=2*pi)))
 
@@ -215,32 +217,30 @@ par(mar=c(5,4,4,2)+.1)
 ##
 
 
-##
+###
+# splats
+###
 require(uwot)
-u <- umap(X)
+n <- 5000
+XX <- cbind(runif(1,min=1,max=10)*cos(scaleAB(1:n, b=2*pi)), runif(1,min=1,max=10)*sin(scaleAB(1:n, b=2*pi)))
 
+u <- umap(XX)
 ##
 
 # find smallest square containing all points
 
-chull <- v[chull(v),]
+chull <- u[chull(u),]
 
-plot(range(v[,1]) + c(-10,10), range(v[,2]) + c(-10,10), asp=1, col='white')
+plot(range(u[,1]) + c(-10,10), range(u[,2]) + c(-10,10), asp=1, col='white')
 rect(-9999,-9999,9999,9999, col=hsv(.18, .2, .98))
 {
-    x <- cbind(runif(300, min=min(v[,1]), max=max(v[,1])), 
-               runif(300, min=min(v[,2]), max=max(v[,2])))
+    x <- cbind(runif(300, min=min(u[,1]), max=max(u[,1])), 
+               runif(300, min=min(u[,2]), max=max(u[,2])))
     sz <- rnorm(300)^2
     points(x, col = hsv(.65, .02, .75, .7), cex=sz)
 }
 
-#polygon(chull, col = 2, lwd=40, border = 2)
-for(crv in curves){
-    lines(crv, lwd=30, col=hsv(.65, .7, .8))
-}
-for(crv in curves){
-    lines(crv, lwd=8, col=hsv(.63, .4, .98))
-}
-
+polygon(chull, col = 'red3', lwd=40, border = 'red3')
+polygon(u, col=2)
 
 

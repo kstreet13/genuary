@@ -5,7 +5,7 @@
 source('tesselate/utils.R')
 
 # set initial color
-h.init <- .5 # .18 .33, .5
+h.init <- .5 # .18 .33, .5 = green, .65 = blue/purple
 p.init <- .5
 
 # vertical separation: 1.5

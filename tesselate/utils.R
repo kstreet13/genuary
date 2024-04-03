@@ -180,7 +180,7 @@ shrink.poly <- function(poly, r){
         if(ip1 > length(inside.sides)) ip1 <- 1
         lines.intersection(inside.sides[[i]][1,], inside.sides[[i]][2,],
                            inside.sides[[ip1]][1,], inside.sides[[ip1]][2,],
-                           interior.only = TRUE)
+                           interior.only = FALSE)
     }))
     centers <- centers[c(nrow(centers),1:(nrow(centers)-1)),]
     
@@ -226,6 +226,13 @@ round.corners <- function(poly, r){
     }
     smoothed.sides <- do.call(rbind, smoothed.sides)
     return(smoothed.sides)
+}
+
+resize.poly <- function(poly, percent){
+    orig <- poly
+    poly <- poly * percent/100
+    poly <- t(t(poly) - colMeans(poly) + colMeans(orig))
+    return(poly)
 }
 
 adjacent <- function(id, maze, return.inds = FALSE, min = .013){
