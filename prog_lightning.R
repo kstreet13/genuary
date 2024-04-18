@@ -117,8 +117,12 @@ for(p.i in 1:num.paths){
     paths[[p.i]] <- rbind(start,
                           getpath(start+rnorm(2,sd=.8), grid, num_steps = path.len, step_length = .5))
     lens <- lengths(paths) /2
+    #w.p <- sample(length(paths),1, prob = 1:length(paths))
+    #start <- paths[[w.p]][sample(lens[w.p], 1, prob = 1:lens[w.p]), ]
     w.p <- sample(length(paths),1, prob = 1:length(paths))
-    start <- paths[[w.p]][sample(lens[w.p], 1, prob = 1:lens[w.p])]
+    start <- ifelse(runif(1) < .5,
+        paths[[w.p]][1,], paths[[w.p]][lens[w.p],])
+    
 }
 
 

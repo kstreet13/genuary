@@ -5,8 +5,8 @@ require(sp) # point.in.polygon
 # make nicely separated, random points in space
 repelled_points <- function(n, multiplier = 15, rw = c(0,1,0,1)){
     x0 <- matrix(runif(2*multiplier*n), ncol=2)
-    x0[,1] <- (x0[,1] + rw[1])*(rw[2]-rw[1])
-    x0[,2] <- (x0[,2] + rw[3])*(rw[4]-rw[3])
+    x0[,1] <- rw[1] + x0[,1]*(rw[2]-rw[1])
+    x0[,2] <- rw[3] + x0[,2]*(rw[4]-rw[3])
     km <- kmeans(x0, centers=n)
     return(km$centers)
 }

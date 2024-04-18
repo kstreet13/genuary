@@ -2,7 +2,7 @@
 
 # draw each polygon four times, alpha = .25, minor purturbations
 
-source('utils.R')
+source('tesselate/utils.R')
 
 # set initial color
 h.init <- .18 # .33, .5
