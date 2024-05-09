@@ -172,4 +172,10 @@ showField(field,-100,-100,100,100)
 abline(30,-1)
 abline(-30,-1)
 
+for(i in 1:500){
+    path <- getpath(field, runif(2,min=-50,max=50), -100,-100,100,100,
+                    num_steps = 1000, step_length = .1)
+    lines(path, col=i)
+}
+
 
