@@ -251,4 +251,28 @@ adjacent <- function(id, maze, return.inds = FALSE, min = .013){
     return(maze$parent[out.inds])
 }
 
+crp <- function(n, off = .075, rw = c(0,1,0,1)){
+    x <- NULL
+    i <- 0
+    while(i < n){
+        if(runif(1) < i/(i+1)){
+            # join table
+            ind <- sample(nrow(x), 1)
+            theta <- runif(1, max = 2*pi)
+            x <- rbind(x,c(
+                x[ind,1] + off*cos(theta),
+                x[ind,2] + off*sin(theta)
+            ))
+        }else{
+            # new table
+            x <- rbind(x, c(runif(2, min = rw[c(1,3)], max = rw[c(2,4)])))
+        }
+        i <- i+1
+    }
+    x <- x[x[,1] > rw[1] &
+               x[,1] < rw[2] &
+               x[,2] > rw[3] &
+               x[,2] < rw[4],]
+    return(x)
+}
 
